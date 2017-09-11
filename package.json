@@ -1,5 +1,5 @@
 {
-  "name": "YOURNAME",
+  "name": "example-ioc",
   "version": "0.0.1",
   "description": "YOURDESCRIPTION",
   "main": "dist/index.js",
@@ -35,6 +35,7 @@
     "test": "test"
   },
   "dependencies": {
+    "mysql": "^2.14.1"
   },
   "devDependencies": {
     "@types/node": "7.0.23",
