@@ -4,75 +4,82 @@
 import * as mysql from 'mysql';
 import * as _ from 'lodash';
 
-
-export enum Size {
-  ExtraSmall,
-  Small,
-  Medium,
-  Large,
-  ExtraLarge
+export class ShoppingCartItem {
+  description: string;
+  productId: number;
+  quantity: number;
+  itemCost: number;
 }
 
-export interface Item {
-  name: string,
-  price: number,
-  size?: Size
-}
+export class ShoppingCart {
+  private id: number;
+  private items: Array<ShoppingCartItem> = [];
+  private subTotal: number;
+  private tax: number;
+  private total: number;
 
+}
 
 export class ShoppingCartService {
-  private items: Array<Item> = [];
-  private mysqlClient: mysql; 
+  private items: Array<ShoppingCartItem> = [];
+  private shoppingCartId: number;
+  private mysqlClient: mysql;
 
   constructor() {
     this.mysqlClient = mysql.createConnection({
       host     : 'localhost',
       user     : 'me',
       password : 'secret',
-      database : 'my_db'
-    }).connect();    
+      database : 'my_db',
+    }).connect();
     return this;
   }
-  
-  public getShoppingCart(shoppingCartId: number): Array<Item> {
-    this.mysqlClient.query('SELECT * FROM shopping_cart WHERE shoppingCartId = ?', [shoppingCartId],
-      (err, records) => {
-        // And done with the connection. 
-        this.mysqlClient.release();
-        if (err) {
-          throw new Error(`Unable to fetch shoppoint cart: ${err.message || 'connection error'}`);
-        }
-        return records;
-      }
-    );
+
+  private executeQuery(query: string, params: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.mysqlClient.query(query, params,
+        (err, records) => {
+          // And done with the connection.
+          this.mysqlClient.release();
+          if (err) {
+            return reject(new Error(`Unable to execute query: ${err.message || 'connection error'}`));
+          }
+          if (records && records.length > 0) {
+            return resolve(records);
+          }
+        },
+      );
+    });
+  }
+  public getShoppingCart(shoppingCartId: number): Promise<ShoppingCart> {
+    try {
+      // tslint:disable-next-line:no-invalid-this
+      return this.executeQuery('SELECT * FROM shopping_cart WHERE id = ?', [shoppingCartId]);
+    } catch (e) {
+      // tslint:disable-next-line:no-console
+      console.error(e);
+    }
   }
 
-  public setShoppingCart(): number {
-    this.mysqlClient.query('INSSERT INTO ?? VALUES ?', ['shopping_cart', this.items],
-      (err, records) => {
-        // And done with the connection. 
-        this.mysqlClient.release();
-        if (err) {
-          throw new Error(`Unable to insert shoppoint cart: ${err.message || 'connection error'}`);
-        }
-        return records[0].shoppingCartId;
-      }
-    );
+  public async setShoppingCart(): Promise<number> {
+    try {
+      return await this.executeQuery('INSERT INTO ?? VALUES ?', ['shopping_cart', this.items]);
+    } catch (e) {
+      // tslint:disable-next-line:no-console
+      console.error(e);
+    }
   }
-  public UpdateShoppingCart(shoppingCartId: number): Array<Item> {
-    this.mysqlClient.query('UPDATE shopping_cart SET productId = ?, userId = ?, amount = ?, tax = ?, subtotal = ? WHERE shoppingCartId = ?', this.items.concat([shoppingCartId]),
-      (err, records) => {
-        // And done with the connection. 
-        this.mysqlClient.release();
-        if (err) {
-          throw new Error(`Unable to update shoppoint cart: ${err.message || 'connection error'}`);
-        }
-        return records;
-      }
-    );
+  public async UpdateShoppingCart(shoppingCartId: number): Promise<ShoppingCart> {
+    try {
+      // tslint:disable-next-line:no-invalid-this
+      return this.executeQuery('UPDATE shopping_cart SET items = ?, subTotal = ?, tax = ?, total = ? WHERE id = ?', [shoppingCartId]);
+    } catch (e) {
+      // tslint:disable-next-line:no-console
+      console.error(e);
+    }
   }
 
-  public addProduct(item: Item) {
+  public addProduct(item: ShoppingCartItem) {
     if (this.items.length < 3) {
       this.items.push(item);
     }
@@ -82,26 +89,25 @@ export class ShoppingCartService {
     return this.items.length;
   }
 
-  private calculateGST() {
-
+  // tslint:disable-next-line:prefer-function-over-method
+  private calculateTax(item: ShoppingCart): ShoppingCart {
+    item['tax'] = item['subTotal'] * 10 / 100;
+    return item;
   }
 
-  private calculateServiceTax() {
-
-  }
   calculateSubTotal() {
     return _.sumBy(this.items, 'subtotal');
   }
 
   checkout() {
-    if (this.items.length == 0) {
-      throw new Error("Cannot checkout an empty cart")
+    if (this.items.length === 0) {
+      throw new Error('Cannot checkout an empty cart');
     }
     this.clear();
   }
 
   clear() {
     this.items = [];
-  }  
+  }
 
 }
