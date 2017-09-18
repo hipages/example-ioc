@@ -1,6 +1,7 @@
 import { DBClient } from 'inceptum';
 import { MySqlDao } from './MySqlDao';
 import { ShoppingCartItem, ShoppingCart } from './ShoppingCart';
+
 export class ShoppingCartDao extends MySqlDao {
 
     constructor(mysqlClient: DBClient) {
@@ -25,7 +26,7 @@ export class ShoppingCartDao extends MySqlDao {
           console.error(e);
         }
       }
-      public async UpdateShoppingCart(shoppingCartId: number): Promise<ShoppingCart> {
+      public async updateShoppingCart(shoppingCartId: number): Promise<ShoppingCart> {
         try {
           // tslint:disable-next-line:no-invalid-this
           return super.executeQuery('UPDATE shopping_cart SET items = ?, subTotal = ?, tax = ?, total = ? WHERE id = ?', [shoppingCartId]);
