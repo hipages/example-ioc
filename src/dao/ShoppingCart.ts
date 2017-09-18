@@ -1,4 +1,3 @@
-
 export class ShoppingCartItem {
   description: string;
   productId: number;
