@@ -2,44 +2,11 @@ import { DBClient } from 'inceptum';
 import * as mysql from 'mysql';
 import { ShoppingCartItem, ShoppingCart } from './ShoppingCart';
 
-export abstract class ShoppingCartEssentials {
-  /**
-   *
-   * @protected
-   * @abstract
-   * @param {number} shoppingCartId
-   * @returns {Promise<ShoppingCart>}
-   * @memberof ShoppingCartEssentials
-   */
-  protected abstract getShoppingCart(shoppingCartId: number): Promise<ShoppingCart>;
-
-  /**
-   *
-   * @protected
-   * @abstract
-   * @param {any} items
-   * @returns {Promise<number>}
-   * @memberof ShoppingCartEssentials
-   */
-  protected abstract setShoppingCart(items): Promise<number>;
-
-  /**
-   *
-   * @protected
-   * @abstract
-   * @param {number} shoppingCartId
-   * @returns {Promise<ShoppingCart>}
-   * @memberof ShoppingCartEssentials
-   */
-  protected abstract updateShoppingCart(shoppingCartId: number): Promise<ShoppingCart>;
-}
-
-export class MySqlDao extends ShoppingCartEssentials {
+export class MySqlDao {
 
     protected mysqlClient: mysql;
 
     constructor(mysqlClient: DBClient) {
-      super();
         this.mysqlClient = mysqlClient;
     }
 
@@ -57,32 +24,4 @@ export class MySqlDao extends ShoppingCartEssentials {
           },
         );
     }
-    /**
-     *
-     * @param shoppingCartId
-     */
-    // tslint:disable-next-line:prefer-function-over-method
-    protected getShoppingCart(shoppingCartId: number): Promise<ShoppingCart> {
-      throw new Error('This is just a placeholder. you need to implement this method');
-    }
-    /**
-     *
-     * @param items
-     */
-    // tslint:disable-next-line:prefer-function-over-method
-    protected setShoppingCart(items): Promise<number> {
-      throw new Error('This is just a placeholder. you need to implement this method');
-    }
-    /**
-     *
-     *
-     * @param {number} shoppingCartId
-     * @returns {Promise<ShoppingCart>}
-     * @memberof MySqlDao
-     */
-    // tslint:disable-next-line:prefer-function-over-method
-    protected updateShoppingCart(shoppingCartId: number): Promise<ShoppingCart> {
-      throw new Error('This is just a placeholder. you need to implement this method');
-    }
-
 }

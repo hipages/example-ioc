@@ -1,8 +1,39 @@
+import * as _ from 'lodash';
 import { DBClient } from 'inceptum';
 import { MySqlDao } from './MySqlDao';
 import { ShoppingCartItem, ShoppingCart } from './ShoppingCart';
+export abstract class ShoppingCartEssentials {
+  /**
+   *
+   * @public
+   * @abstract
+   * @param {number} shoppingCartId
+   * @returns {Promise<ShoppingCart>}
+   * @memberof ShoppingCartEssentials
+   */
+  public abstract getShoppingCart(shoppingCartId: number): Promise<ShoppingCart>;
 
-export class ShoppingCartDao extends MySqlDao {
+  /**
+   *
+   * @public
+   * @abstract
+   * @param {any} items
+   * @returns {Promise<number>}
+   * @memberof ShoppingCartEssentials
+   */
+  public abstract setShoppingCart(items): Promise<number>;
+
+  /**
+   *
+   * @public
+   * @abstract
+   * @param {number} shoppingCartId
+   * @returns {Promise<ShoppingCart>}
+   * @memberof ShoppingCartEssentials
+   */
+  public abstract updateShoppingCart(shoppoingCart: ShoppingCartItem, shoppingCartId: number): Promise<ShoppingCart>;
+}
+export class ShoppingCartDao extends MySqlDao implements ShoppingCartEssentials {
 
     constructor(mysqlClient: DBClient) {
         super(mysqlClient);
@@ -26,10 +57,11 @@ export class ShoppingCartDao extends MySqlDao {
           console.error(e);
         }
       }
-      public async updateShoppingCart(shoppingCartId: number): Promise<ShoppingCart> {
+      public async updateShoppingCart(shoppingCart: ShoppingCartItem, shoppingCartId: number): Promise<ShoppingCart> {
         try {
+          const updateParams = Object.keys(shoppingCart).reduce((acc, item) => acc.concat([`${item} = ?`]), []).join();
           // tslint:disable-next-line:no-invalid-this
-          return super.executeQuery('UPDATE shopping_cart SET items = ?, subTotal = ?, tax = ?, total = ? WHERE id = ?', [shoppingCartId]);
+          return super.executeQuery(`UPDATE shopping_cart SET ${updateParams} WHERE id = ?`, [_.values(shoppingCart), shoppingCartId]);
         } catch (e) {
           // tslint:disable-next-line:no-console
           console.error(e);
